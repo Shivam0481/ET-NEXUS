@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  api:
+    build: backend/
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://etconcierge:mypassword@db:5432/etconcierge
+      - REDIS_URL=redis://redis:6379/0
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./backend:/app
+
+  db:
+    image: ankane/pgvector:latest
+    environment:
+      - POSTGRES_USER=etconcierge
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=etconcierge
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
